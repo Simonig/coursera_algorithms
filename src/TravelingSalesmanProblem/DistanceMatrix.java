@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 class DistanceMatrix {
     public static Double[][] initDistanceMatrix(){
-        Path path = Paths.get("./src/TravelingSalesmanProblem/text.txt");
+        Path path = Paths.get("./src/TravelingSalesmanProblem/tsp.txt");
         List<Point> points = new ArrayList<Point>();
 
 

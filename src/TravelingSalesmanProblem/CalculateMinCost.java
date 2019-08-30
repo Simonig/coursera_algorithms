@@ -1,16 +1,11 @@
 package TravelingSalesmanProblem;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
 
 class Point {
     private double x;
@@ -52,16 +47,34 @@ class Index {
 
     @Override
     public int hashCode() {
-        int result = currentVertex;
-        result = 31 * result + (vertexSet != null ? vertexSet.hashCode() : 0);
-        return result;
+        String hashCode = "0";
+        if (vertexSet != null) {
+            Integer[] vertexArr = vertexSet.toArray(new Integer[vertexSet.size()]);
+            Arrays.sort(vertexArr);
+            hashCode = Arrays.toString(vertexArr);
+        }
+
+        int vertexHash = 31 * currentVertex;
+        String result = vertexHash + hashCode;
+        return result.hashCode();
+    }
+
+    public String getKey() {
+        String hashCode = "_0";
+        if (vertexSet != null) {
+            Integer[] vertexArr = vertexSet.toArray(new Integer[vertexSet.size()]);
+            Arrays.sort(vertexArr);
+            hashCode = Arrays.toString(vertexArr);
+        }
+
+        return currentVertex + "_" + hashCode;
     }
 
     public static Index createIndex(int vertex, Set<Integer> vertexSet) {
         Index i = new Index();
         i.currentVertex = vertex;
         i.vertexSet = vertexSet;
-        if(i.vertexSet != null && vertexSet.size() == 0){
+        if (i.vertexSet != null && vertexSet.size() == 0) {
             i.vertexSet = null;
         }
         return i;
@@ -72,7 +85,7 @@ class Index {
 public class CalculateMinCost {
     private static Double INFINITY = 1000000000.0;
 
-    private static Double getCost(Set<Integer> set, int prevVertex, Map<Index, Double> minCostDp) {
+    private static Double getCost(Set<Integer> set, int prevVertex, Map<String, Double> minCostDp) {
         Set<Integer> copySet = new HashSet<>();
         copySet.addAll(set);
         copySet.remove(prevVertex);
@@ -80,11 +93,8 @@ public class CalculateMinCost {
             copySet = null;
         }
         Index index = Index.createIndex(prevVertex, copySet);
-        if(minCostDp.size() == 16 && prevVertex == 1){
-            minCostDp.get(index);
-            minCostDp.get(index);
-        }
-        Double cost = minCostDp.get(index);
+
+        Double cost = minCostDp.containsKey(index.getKey()) ? minCostDp.get(index.getKey()) : INFINITY;
         if (copySet != null) {
             copySet.add(prevVertex);
         }
@@ -99,34 +109,36 @@ public class CalculateMinCost {
             input[i] = i + 1;
         }
 
-        Map<Index, Double> minCostDP = new HashMap<>();
+        Map<String, Double> minCostDP = new HashMap<>();
         for (int v : input) {
             Index index = Index.createIndex(v, null);
-            Index index2 = Index.createIndex(v, null);
-            index.equals(index2);
-            minCostDP.put(index, distance[1][v]);
+            minCostDP.put(index.getKey(), distance[1][v]);
         }
 
-        List<Set<Integer>> sets = Permutations.generateCombination(distance.length - 1);
+        for (int r = 0; r < n; r++) {
+            List<Set<Integer>> sets = Permutations.getCombinations(input, input.length, r);
+            System.out.println(r);
 
-        for (Set<Integer> set : sets) {
-            for (int currentVertex = 2; currentVertex <= n; currentVertex++) {
-                if (Arrays.asList(set).contains(currentVertex)) {
-                    continue;
-                }
-                Index index = Index.createIndex(currentVertex, set);
-                Double minCost = INFINITY;
-                for (int prevVertex : set) {
-                    double cost = distance[prevVertex][currentVertex] + getCost(set, prevVertex, minCostDP);
-                    if (cost < minCost) {
-                        minCost = cost;
+            for (Set<Integer> set : sets) {
+
+                for (int currentVertex = 2; currentVertex <= n; currentVertex++) {
+                    if (set.contains(currentVertex)) {
+                        continue;
                     }
-                }
-                if (set.size() == 0) {
-                    minCost = distance[1][currentVertex];
-                }
+                    Index index = Index.createIndex(currentVertex, set);
+                    Double minCost = INFINITY;
+                    for (int prevVertex : set) {
+                        double cost = distance[prevVertex][currentVertex] + getCost(set, prevVertex, minCostDP);
+                        if (cost < minCost) {
+                            minCost = cost;
+                        }
+                    }
+                    if (set.size() == 0) {
+                        minCost = distance[1][currentVertex];
+                    }
 
-                minCostDP.put(index, minCost);
+                    minCostDP.put(index.getKey(), minCost);
+                }
             }
         }
 
@@ -142,6 +154,6 @@ public class CalculateMinCost {
                 minCost = cost;
             }
         }
-        System.out.println(minCost);
+        System.out.println(minCost.toString());
     }
 }

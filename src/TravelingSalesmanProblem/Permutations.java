@@ -1,6 +1,7 @@
 package TravelingSalesmanProblem;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -10,11 +11,10 @@ import java.util.Set;
 public class Permutations {
 
     static void combinationUtil(int arr[], int n, int r,
-                                int index, int data[], int i, List<int[]> result)
-    {
+                                int index, int data[], int i, List<int[]> result) {
         if (index == r) {
             int[] set = new int[r];
-            for(int j = 0; j < r; j++){
+            for (int j = 0; j < r; j++) {
                 set[j] = data[j];
             }
             result.add(set);
@@ -31,14 +31,22 @@ public class Permutations {
         combinationUtil(arr, n, r, index, data, i + 1, result);
     }
 
-    static List<int[]> getCombinations(int arr[], int n, int r)
-    {
+    static List<Set<Integer>> getCombinations(int arr[], int n, int r) {
         // A temporary array to store all combination
         // one by one
         int data[] = new int[r];
         List<int[]> result = new ArrayList<>();
         combinationUtil(arr, n, r, 0, data, 0, result);
-        return result;
+        List<Set<Integer>> setList = new ArrayList<>();
+        result.forEach(x -> {
+                    Set<Integer> set = new HashSet<>();
+                    for (int num : x) {
+                        set.add(num);
+                    }
+                    setList.add(set);
+                }
+        );
+        return setList;
     }
 
     private static class SetSizeComparator implements Comparator<Set<Integer>> {
@@ -51,8 +59,8 @@ public class Permutations {
 
     static public List<Set<Integer>> generateCombination(int n) {
         int input[] = new int[n];
-        for(int i = 0; i < input.length; i++) {
-            input[i] = i+1;
+        for (int i = 0; i < input.length; i++) {
+            input[i] = i + 1;
         }
         List<Set<Integer>> allSets = new ArrayList<>();
         int result[] = new int[input.length];
@@ -63,42 +71,32 @@ public class Permutations {
 
 
     private static void generateCombination(int input[], int start, int pos, List<Set<Integer>> allSets, int result[]) {
-        if(pos == input.length) {
+        if (pos == input.length) {
             return;
         }
         Set<Integer> set = createSet(result, pos);
         allSets.add(set);
-        for(int i=start; i < input.length; i++) {
+        for (int i = start; i < input.length; i++) {
             result[pos] = input[i];
-            generateCombination(input, i+1, pos+1, allSets, result);
+            generateCombination(input, i + 1, pos + 1, allSets, result);
         }
     }
 
     private static Set<Integer> createSet(int input[], int pos) {
-        if(pos == 0) {
+        if (pos == 0) {
             return new HashSet<>();
         }
         Set<Integer> set = new HashSet<>();
-        for(int i = 0; i < pos; i++) {
+        for (int i = 0; i < pos; i++) {
             set.add(input[i]);
         }
         return set;
     }
 
-    public static void main(String[] args)
-    {
-        int arr[] = { 10, 20, 30, 40, 50 };
+    public static void main(String[] args) {
+        int arr[] = {10, 20, 30, 40, 50};
         int r = 3;
-        int n = arr.length;
-        List<int[]> result = getCombinations(arr, n, r);
-        for(int[] res: result){
-            System.out.println(res.length);
 
-            for(int x : res){
-                System.out.print(x);
-            }
-            System.out.println("-----");
-        }
     }
 }
 

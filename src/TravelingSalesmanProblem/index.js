@@ -1,8 +1,16 @@
 const { initGraph, Node } = require('./Graph');
+const {promisify} = require('util');
+
 const v8 = require('v8');
 const totalHeapSize = v8.getHeapStatistics().total_available_size;
 const totalHeapSizeGb = (totalHeapSize / 1024 / 1024 / 1024).toFixed(2);
 console.log('totalHeapSizeGb: ', totalHeapSizeGb);
+const redis = require("redis"),
+    client = redis.createClient();
+
+const getAsync = promisify(client.get).bind(client);
+const hsetAsync = promisify(client.set).bind(client);
+
 
 function getCombinations(arr, n, r) {
     const data = new Array(r);
@@ -32,15 +40,12 @@ class IndexMap {
     constructor(){
         this.map = new Map();
     }
-    get(key){
-        return this.map.get(JSON.stringify(key))
+    async get(key){
+        return await getAsync(JSON.stringify(key))
     }
 
-    set(key, value){
-        this.map.set(JSON.stringify(key), value)
-    }
-    remove(key){
-        this.map.delete(JSON.stringify(key));
+    async set(key, value){
+        await hsetAsync(JSON.stringify(key), value)
     }
 }
 class Index{
@@ -49,11 +54,11 @@ class Index{
         this.s = set;
     }
 }
-function getCost(set, prevVertex, minCostDp){
+async function getCost(set, prevVertex, minCostDp){
     const copySet = set.filter(vertex => vertex !== prevVertex);
     const index = new Index(prevVertex, copySet);
-    const cost = minCostDp.get(index);
-    return cost;
+    const cost = await minCostDp.get(index);
+    return parseFloat(cost);
 }
 
 async function main(filename) {
@@ -79,7 +84,7 @@ async function main(filename) {
                 let minPrevVertex = 1;
                 for(let prevVertex of set){
                     const distanceCost = distance[prevVertex][currentVertex];
-                    const hopCost = getCost(set, prevVertex, minCostDp);
+                    const hopCost = await getCost(set, prevVertex, minCostDp);
                     const cost = distanceCost +  hopCost;
                     if (cost < minCost) {
                         minCost = cost;
@@ -90,20 +95,23 @@ async function main(filename) {
                     minCost = distance[1][currentVertex];
                 }
 
-                newCostDp.set(index, minCost);
+                await newCostDp.set(index, minCost);
             }
         }
         minCostDp = newCostDp;
     }
     let minCost = Infinity;
     for(let k = 2; k <= input.length; k++){
-        const cost = distance[k][1] + getCost(input, k, minCostDp);
+        const costDp = await getCost(input, k, minCostDp);
+        const d = distance[k][1];
+        const cost =  d + costDp;
         if(cost < minCost){
             minCost = cost;
         }
     }
-    console.log(minCostDp.map);
     console.log(minCost);
 }
-
-main('text.txt');
+client.flushdb( function (err, succeeded) {
+    console.log(succeeded); // will be true if successfull
+    main('tsp.txt');
+});
