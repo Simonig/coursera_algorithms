@@ -11,13 +11,14 @@ import java.util.Set;
 public class Permutations {
 
     static void combinationUtil(int arr[], int n, int r,
-                                int index, int data[], int i, List<int[]> result) {
+                                int index, int data[], int i, List<Integer> result) {
         if (index == r) {
-            int[] set = new int[r];
+            int b = 0;
+
             for (int j = 0; j < r; j++) {
-                set[j] = data[j];
+                b |= 1 << data[j] - 1;
             }
-            result.add(set);
+            result.add(b);
             return;
         }
 
@@ -31,22 +32,13 @@ public class Permutations {
         combinationUtil(arr, n, r, index, data, i + 1, result);
     }
 
-    static List<Set<Integer>> getCombinations(int arr[], int n, int r) {
+    static List<Integer>  getCombinations(int[] arr, int n, int r) {
         // A temporary array to store all combination
         // one by one
-        int data[] = new int[r];
-        List<int[]> result = new ArrayList<>();
+        int[] data = new int[r];
+        List<Integer> result = new ArrayList<>();
         combinationUtil(arr, n, r, 0, data, 0, result);
-        List<Set<Integer>> setList = new ArrayList<>();
-        result.forEach(x -> {
-                    Set<Integer> set = new HashSet<>();
-                    for (int num : x) {
-                        set.add(num);
-                    }
-                    setList.add(set);
-                }
-        );
-        return setList;
+        return result;
     }
 
     private static class SetSizeComparator implements Comparator<Set<Integer>> {
@@ -81,6 +73,13 @@ public class Permutations {
             generateCombination(input, i + 1, pos + 1, allSets, result);
         }
     }
+    private static byte createByteSet(int[] input, int pos) {
+        byte b = 0;
+        for (int i = 0; i < pos; i++) {
+            b |= 1 << input[i];
+        }
+        return b;
+    }
 
     private static Set<Integer> createSet(int input[], int pos) {
         if (pos == 0) {
@@ -94,9 +93,11 @@ public class Permutations {
     }
 
     public static void main(String[] args) {
-        int arr[] = {10, 20, 30, 40, 50};
-        int r = 3;
-
+        int arr[] = {1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25};
+        int r = 2;
+        List<Integer> sets = getCombinations(arr, 25, 25);
+        sets.stream().forEach(x -> System.out.println(x));
+        System.out.println(sets.size());
     }
 }
 

@@ -72,7 +72,7 @@ async function main(filename) {
 
     for(let r = 1; r < size; r++){
         const sets = getCombinations(input, input.length, r);
-        console.log(`sets ${r}/${size} - dpLength = ${minCostDp.map.size}`);
+        console.log(`sets ${r}/${size} - setLength = ${sets.length}`);
         const newCostDp = new IndexMap();
         for(let set of sets){
             for(let currentVertex = 2; currentVertex <= size; currentVertex++){
