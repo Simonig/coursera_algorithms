@@ -85,39 +85,28 @@ class Index {
 public class CalculateMinCost {
     private static Double INFINITY = 1000000000.0;
 
-    private static Double getCost(Set<Integer> set, int prevVertex, Map<String, Double> minCostDp) {
-        Set<Integer> copySet = new HashSet<>();
-        copySet.addAll(set);
-        copySet.remove(prevVertex);
-        if (copySet.size() == 0) {
-            copySet = null;
-        }
-        Index index = Index.createIndex(prevVertex, copySet);
-
-        Double cost = minCostDp.containsKey(index.getKey()) ? minCostDp.get(index.getKey()) : INFINITY;
-        if (copySet != null) {
-            copySet.add(prevVertex);
-        }
-        return cost;
-    }
-
     public static void main(String[] args) {
         Double[][] distance = DistanceMatrix.initDistanceMatrix();
         int n = distance.length - 1;
-        int[] input = new int[n];
-        for (int i = 0; i < n; i++) {
-            input[i] = i + 1;
+        int[] input = new int[n - 1];
+        for (int i = 0; i < n - 1; i++) {
+            input[i] = i + 2;
         }
         int size = (int) Math.pow(2, n + 1);
         Double[][] prevRow = new Double[n + 1][size + 1];
 
         for (int v : input) {
             //Index index = Index.createIndex(v, null);
+            prevRow[v][1] = distance[1][v];
             prevRow[v][0] = distance[1][v];
             //minCostDP.put(index.getKey(), distance[1][v]);
         }
 
-        for (int r = 1; r < n; r++) {
+        for(int i = 1; i < n; i++) {
+            prevRow[1][1<<i] = distance[1][i];
+        }
+
+        for (int r = 1; r < n - 1; r++) {
             List<Integer> sets = Permutations.getCombinations(input, input.length, r);
             System.out.println(r);
             Double[][] currentRow = new Double[n + 1][size + 1];
@@ -135,16 +124,14 @@ public class CalculateMinCost {
                         int bit = set & i;
                         if (bit == i) {
                             int prevVertex = pos;
-                            int prevSet = set - i;
-                            if(prevRow[prevVertex][prevSet] != null){
-                                double cost = distance[prevVertex][currentVertex] + prevRow[prevVertex][prevSet];//+ getCost(set, prevVertex, minCostDP);
-                                if (cost < minCost) {
-                                    minCost = cost;
-                                }
+                            int prevSet = set & ~i;
+                            double cost = distance[prevVertex][currentVertex] + prevRow[prevVertex][prevSet];//+ getCost(set, prevVertex, minCostDP);
+                            if (cost < minCost) {
+                                minCost = cost;
                             }
+
                         }
                         pos++;
-
                     }
                     if (set == 0) {
                         minCost = distance[1][currentVertex];
@@ -164,8 +151,9 @@ public class CalculateMinCost {
         int v = 2;
         for (int k = 2; k <= set; k <<= 1) {
             int bit = set & k;
-            if(prevRow[v][set - k] != null){
-                Double cost = distance[v][1] + prevRow[v][set - k];
+            if (bit == k) {
+                int prevSet = set & ~k;
+                Double cost = distance[v][1] + prevRow[v][prevSet];
                 if (cost < minCost) {
                     minCost = cost;
                 }
