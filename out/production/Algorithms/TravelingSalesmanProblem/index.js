@@ -1,5 +1,5 @@
 const { initGraph, Node } = require('./Graph');
-const {promisify} = require('util');
+const { promisify } = require('util');
 
 const v8 = require('v8');
 const totalHeapSize = v8.getHeapStatistics().total_available_size;
@@ -37,24 +37,27 @@ function combinationUtil(arr, n, r, index, data, i, sets) {
 }
 
 class IndexMap {
-    constructor(){
+    constructor() {
         this.map = new Map();
     }
-    async get(key){
+
+    async get(key) {
         return await getAsync(JSON.stringify(key))
     }
 
-    async set(key, value){
+    async set(key, value) {
         await hsetAsync(JSON.stringify(key), value)
     }
 }
-class Index{
-    constructor(vertex, set){
+
+class Index {
+    constructor(vertex, set) {
         this.v = vertex;
         this.s = set;
     }
 }
-async function getCost(set, prevVertex, minCostDp){
+
+async function getCost(set, prevVertex, minCostDp) {
     const copySet = set.filter(vertex => vertex !== prevVertex);
     const index = new Index(prevVertex, copySet);
     const cost = await minCostDp.get(index);
@@ -70,28 +73,28 @@ async function main(filename) {
     let minCostDp = new IndexMap();
     input.forEach(v => minCostDp.set(new Index(v, []), distance[1][v]));
 
-    for(let r = 1; r < size; r++){
+    for (let r = 1; r < size; r++) {
         const sets = getCombinations(input, input.length, r);
         console.log(`sets ${r}/${size} - setLength = ${sets.length}`);
         const newCostDp = new IndexMap();
-        for(let set of sets){
-            for(let currentVertex = 2; currentVertex <= size; currentVertex++){
-                if(set.includes(currentVertex)){
+        for (let set of sets) {
+            for (let currentVertex = 2; currentVertex <= size; currentVertex++) {
+                if (set.includes(currentVertex)) {
                     continue;
                 }
                 const index = new Index(currentVertex, set);
                 let minCost = Infinity;
                 let minPrevVertex = 1;
-                for(let prevVertex of set){
+                for (let prevVertex of set) {
                     const distanceCost = distance[prevVertex][currentVertex];
                     const hopCost = await getCost(set, prevVertex, minCostDp);
-                    const cost = distanceCost +  hopCost;
+                    const cost = distanceCost + hopCost;
                     if (cost < minCost) {
                         minCost = cost;
                         minPrevVertex = prevVertex;
                     }
                 }
-                if(set.length === 0) {
+                if (set.length === 0) {
                     minCost = distance[1][currentVertex];
                 }
 
@@ -101,17 +104,15 @@ async function main(filename) {
         minCostDp = newCostDp;
     }
     let minCost = Infinity;
-    for(let k = 2; k <= input.length; k++){
+    for (let k = 2; k <= input.length; k++) {
         const costDp = await getCost(input, k, minCostDp);
         const d = distance[k][1];
-        const cost =  d + costDp;
-        if(cost < minCost){
+        const cost = d + costDp;
+        if (cost < minCost) {
             minCost = cost;
         }
     }
     console.log(minCost);
 }
-client.flushdb( function (err, succeeded) {
-    console.log(succeeded); // will be true if successfull
-    main('tsp.txt');
-});
+
+main('tsp.txt');

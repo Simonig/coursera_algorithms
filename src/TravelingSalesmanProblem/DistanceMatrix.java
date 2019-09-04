@@ -10,6 +10,28 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+class Point {
+    private double x;
+    private double y;
+
+    public Point(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    double getX() {
+        return this.x;
+    }
+
+    double getY() {
+        return this.y;
+    }
+
+    public double getDistance(Point destination) {
+        return Math.sqrt(Math.pow(this.x - destination.getX(), 2) + Math.pow(this.y - destination.getY(), 2));
+    }
+}
+
 class DistanceMatrix {
     public static Double[][] initDistanceMatrix(){
         Path path = Paths.get("./src/TravelingSalesmanProblem/tsp.txt");
