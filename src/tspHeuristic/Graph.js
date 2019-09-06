@@ -27,28 +27,16 @@ class Node {
         this.y = y;
     }
 
-    getEdge(node) {
-        let edge;
-        this.edges.forEach(current => {
-            if (current.node.n === node.n) {
-                edge = current;
-            }
-        });
-
-        return edge;
-    }
 }
 
 class Graph {
     constructor(n) {
         this.nodes = new Map();
+        this.unVisitedNodes = [];
         for (let i = 1; i <= n; i++) {
-            this.nodes.set(i, new Node(i))
+            this.nodes.set(i, new Node(i));
+            this.unVisitedNodes.push(i);
         }
-        this.visited = 0;
-    }
-
-    resetVisited() {
         this.visited = 0;
     }
 
@@ -66,8 +54,10 @@ class Graph {
     }
 
     setVisited(n) {
-        if (this.isVisited(n)) {
-            this.visited++;
+        this.visited++;
+        const index = this.unVisitedNodes.indexOf(n);
+        if (index > -1) {
+            this.unVisitedNodes.splice(index, 1);
         }
         this.getNode(n).setVisited();
     }
@@ -84,12 +74,33 @@ class Graph {
 
     }
 
-    getDistance(i, d){
+    getDistance(i, d) {
         const node = this.getNode(i);
         const { x, y } = node;
         const destination = this.getNode(d);
         const { x: z, y: w } = destination;
-        return Math.sqrt(Math.pow(x-z, 2) + Math.pow(y - w, 2));
+        return Math.sqrt(Math.pow(x - z, 2) + Math.pow(y - w, 2));
+    }
+
+    getClosestUnvisited(i) {
+        let minCost = Infinity;
+        let lowerCostNode = null;
+
+        for (let d = 0; d < this.unVisitedNodes.length; d++) {
+            const nodeNumber = this.unVisitedNodes[d];
+            const destination = this.getNode(nodeNumber);
+            if (i !== nodeNumber && !destination.isVisited()) {
+                const node = this.getNode(i);
+                const { x, y } = node;
+                const { x: z, y: w } = destination;
+                const cost = Math.sqrt(Math.pow(x - z, 2) + Math.pow(y - w, 2));
+                if (minCost > cost) {
+                    minCost = cost;
+                    lowerCostNode = nodeNumber;
+                }
+            }
+        }
+        return [lowerCostNode, minCost];
     }
 }
 
@@ -97,7 +108,6 @@ function initGraph(filename = 'tsp.txt') {
     return new Promise(async resolve => {
         const file = path.join(__dirname, filename);
         let graph;
-        let totalEdges;
         await readInput(file, (line) => {
             if (!graph) {
                 const [total] = line.split(" ");
@@ -108,28 +118,10 @@ function initGraph(filename = 'tsp.txt') {
                 node.setCoords(x, y);
             }
         });
-        //const distanceMatrix = new Array(graph.size() + 1).fill(null).map(x => new Array(graph.size() + 1).fill(Infinity));
-/*
-
-        for (let i = 1; i <= graph.size(); i++) {
-            for (let d = 1; d <= graph.size(); d++) {
-                if (i !== d) {
-                    const node = graph.getNode(i);
-                    const { x, y } = node;
-                    const destination = graph.getNode(d);
-                    const { x: z, y: w } = destination;
-                    const cost = Math.sqrt(Math.pow(x-z, 2) + Math.pow(y - w, 2));
-                    distanceMatrix[i][d] = cost;
-                    node.add(destination, cost)
-                } else {
-                    distanceMatrix[i][d] = 0;
-                }
-            }
-        }*/
-
         resolve([graph.size(), graph]);
     })
 }
+
 initGraph();
 module.exports = {
     initGraph,

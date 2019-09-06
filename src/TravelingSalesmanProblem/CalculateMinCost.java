@@ -128,5 +128,6 @@ public class CalculateMinCost {
             }
         }
         System.out.println(minCost.toString());
+        //26442.73030895475
     }
 }
